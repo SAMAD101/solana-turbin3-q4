@@ -62,7 +62,11 @@ impl<'info> Refund<'info> {
             authority: self.maker.to_account_info()
         };
 
-        let transfer_cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), transfer_accounts, &signer_seeds);
+        let transfer_cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            transfer_accounts,
+            &signer_seeds
+        );
 
         transfer_checked(transfer_cpi_ctx, self.vault.amount, self.mint_a.decimals)?;
 
@@ -72,7 +76,11 @@ impl<'info> Refund<'info> {
             authority: self.escrow.to_account_info()
         };
 
-        let close_cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), close_accounts, &signer_seeds);
+        let close_cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            close_accounts,
+            &signer_seeds
+        );
 
         close_account(close_cpi_ctx)
     }
