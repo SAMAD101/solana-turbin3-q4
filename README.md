@@ -1,3 +1,3 @@
-# Turbin3 Q4 2024 personal repo.
+# Turbin3 Q4 2024 personal repo
 
-## Capstone porject program: https://github.com/hivemind-cool/voting-pogram
+## Capstone project program: https://github.com/hivemind-cool/voting-pogram
