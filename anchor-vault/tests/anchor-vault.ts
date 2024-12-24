@@ -1,26 +1,89 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+
 import { AnchorVault } from "../target/types/anchor_vault";
+import { assert } from "chai";
 
 describe("anchor_vault", () => {
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  let vaultPDA: PublicKey;
+  let vaultBump: number;
+  let statePDA: PublicKey;
+  let stateBump: number;
+
+  before(async () => {
+    [statePDA, stateBump] = await PublicKey.findProgramAddress(
+      [Buffer.from("state"), provider.wallet.publicKey.toBuffer()],
+      program.programId
+    );
+    
+    [vaultPDA, vaultBump] = await PublicKey.findProgramAddress(
+      [Buffer.from("vault"), statePDA.toBuffer()],
+      program.programId
+    );
+  });
 
   const program = anchor.workspace.AnchorVault as Program<AnchorVault>;
 
-  it("initialize!", async () => {
-    // Add your test here.
-    const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
+  it("initialize", async () => {
+    let accountParams = {
+      user: provider.wallet.publicKey,
+      state: statePDA,
+      vault: vaultPDA,
+      systemProgram: SystemProgram.programId,
+    } as any;
+    const tx = await program.methods
+     .initialize()
+     .accounts(accountParams)
+     .rpc();
+
+    const stateAccount = await program.account.vaultState.fetch(statePDA);
+    assert.equal(stateAccount.stateBump, stateBump);
+    assert.equal(stateAccount.vaultBump, vaultBump);
+
+    console.log("Initialize successful, transaction signature:", tx);
   });
+
   it("deposit", async () => {
-    // Add your test here.
-    const tx = await program.methods.deposit(new anchor.BN(0.2)).rpc();
-    console.log("Your transaction signature", tx);
+    const depositAmount = new anchor.BN(1_000_000_000); // 1 SOL
+    const beforeBalance = await provider.connection.getBalance(vaultPDA);
+
+    let accountParams = {
+      user: provider.wallet.publicKey,
+      state: statePDA,
+      vault: vaultPDA,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    } as any;
+    const tx = await program.methods
+      .deposit(depositAmount)
+      .accounts(accountParams)
+      .rpc();
+    
+    const afterBalance = await provider.connection.getBalance(vaultPDA);
+    assert.equal(beforeBalance + depositAmount.toNumber(), afterBalance);
+    console.log("Deposit successful, transaction signature:", tx);
   });
+
   it("withdraw", async () => {
-    // Add your test here.
-    const tx = await program.methods.withdraw(new anchor.BN(0.1)).rpc();
-    console.log("Your transaction signature", tx);
+    const withdrawAmount = new anchor.BN(500_000_000); // 0.5 SOL
+    const beforeBalance = await provider.connection.getBalance(provider.wallet.publicKey);
+
+    let accountParams = {
+      user: provider.wallet.publicKey,
+      state: statePDA,
+      vault: vaultPDA,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    } as any;
+    const tx = await program.methods
+      .withdraw(withdrawAmount)
+      .accounts(accountParams)
+      .rpc();
+
+    const afterBalance = await provider.connection.getBalance(provider.wallet.publicKey);
+    assert.isAbove(afterBalance, beforeBalance);
+    console.log("Withdraw successful, transaction signature:", tx);
   });
 });
