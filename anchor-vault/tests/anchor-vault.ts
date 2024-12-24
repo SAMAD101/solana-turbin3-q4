@@ -1,12 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { AnchorVaultQ424 } from "../target/types/anchor_vault_q424";
+import { AnchorVault } from "../target/types/anchor_vault";
 
-describe("anchor_vault_q424", () => {
+describe("anchor_vault", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.AnchorVaultQ424 as Program<AnchorVaultQ424>;
+  const program = anchor.workspace.AnchorVault as Program<AnchorVault>;
 
   it("initialize!", async () => {
     // Add your test here.
