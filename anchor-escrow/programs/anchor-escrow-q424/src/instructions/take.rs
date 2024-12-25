@@ -17,10 +17,11 @@ use anchor_spl::{
 use crate::Escrow;
 
 #[derive(Accounts)]
+#[instruction(_seed: u64)]
 pub struct Take<'info> {
-    #[account]
+    #[account(mut)]
     pub taker: Signer<'info>,
-    #[account]
+    #[account(mut)]
     pub maker: SystemAccount<'info>,
     pub mint_a: InterfaceAccount<'info, Mint>,
     pub mint_b: InterfaceAccount<'info, Mint>,
@@ -47,7 +48,7 @@ pub struct Take<'info> {
     #[account(
         mut,
         close = maker,
-        seeds = [b"escrow", maker.key().as_ref(), seed.to_le_bytes().as_ref()],
+        seeds = [b"escrow", maker.key().as_ref(), _seed.to_le_bytes().as_ref()],
         has_one = mint_a,
         has_one = mint_b,
         has_one = maker,
@@ -66,7 +67,7 @@ pub struct Take<'info> {
 }
 
 impl<'info> Take<'info> {
-    pub fn deposit(&mut self) -> Result<()> {
+    pub fn deposit(&mut self, _seed: u64) -> Result<()> {
         let transfer_accounts = TransferChecked {
             from: self.taker_ata_b.to_account_info(),
             mint: self.mint_b.to_account_info(),
@@ -79,7 +80,7 @@ impl<'info> Take<'info> {
         transfer_checked(cpi_ctx, self.escrow.recieve, self.mint_b.decimals)
     }
 
-    pub fn withdraw_and_close_vault(&mut self) -> Result<()> {
+    pub fn withdraw_and_close_vault(&mut self, _seed: u64) -> Result<()> {
         let signer_seeds: [&[&[u8]]; 1] = [&[
             b"escrow",
             self.maker.to_account_info().key.as_ref(),

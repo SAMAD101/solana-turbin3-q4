@@ -12,20 +12,26 @@ pub use state::*;
 declare_id!("DgUNYfGZE5giS2oJCtspXPnpwJ1mhp6WS6ceKv1abk5k");
 
 #[program]
-pub mod anchor_escrow_q424 {
+pub mod anchor_escrow {
     use super::*;
 
     pub fn make(ctx: Context<Make>, seed: u64, deposit: u64, receive: u64) -> Result<()> {
         ctx.accounts.deposit(deposit)?;
         ctx.accounts.init_escrow(seed, receive, &ctx.bumps)?;
+
+        Ok(())
     }
 
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         ctx.accounts.refund_and_close_vault()?;
+
+        Ok(())
     }
 
-    pub fn take(ctx: Context<Take>) -> Result<()> {
-        ctx.accounts.deposit()?;
-        ctx.accounts.withdraw_and_close_vault()?;
+    pub fn take(ctx: Context<Take>, seed: u64) -> Result<()> {
+        ctx.accounts.deposit(seed)?;
+        ctx.accounts.withdraw_and_close_vault(seed)?;
+
+        Ok(())
     }
 }
