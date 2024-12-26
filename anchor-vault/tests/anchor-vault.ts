@@ -1,13 +1,15 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { assert } from "chai";
 
 import { AnchorVault } from "../target/types/anchor_vault";
-import { assert } from "chai";
 
 describe("anchor_vault", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+
+  const program = anchor.workspace.AnchorVault as Program<AnchorVault>;
 
   let vaultPDA: PublicKey;
   let vaultBump: number;
@@ -25,8 +27,6 @@ describe("anchor_vault", () => {
       program.programId
     );
   });
-
-  const program = anchor.workspace.AnchorVault as Program<AnchorVault>;
 
   it("initialize", async () => {
     let accountParams = {

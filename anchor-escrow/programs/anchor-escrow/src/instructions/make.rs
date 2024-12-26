@@ -55,6 +55,7 @@ impl<'info> Make<'info> {
             recieve,
             bump: bumps.escrow
         });
+        
         Ok(())
     }
 
@@ -68,6 +69,8 @@ impl<'info> Make<'info> {
 
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), transfer_accounts);
 
-        transfer_checked(cpi_ctx, deposit, self.mint_a.decimals)
+        transfer_checked(cpi_ctx, deposit, self.mint_a.decimals)?;
+
+        Ok(())
     }
 }
