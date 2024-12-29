@@ -13,7 +13,6 @@ import {
   createAssociatedTokenAccountInstruction,
   createInitializeMintInstruction,
   getAssociatedTokenAddress,
-  mintTo,
   createMintToInstruction
 } from "@solana/spl-token";
 import { assert } from "chai";
@@ -27,9 +26,9 @@ describe("anchor-escrow", () => {
   const program = anchor.workspace.AnchorEscrow as Program<AnchorEscrow>;
 
   let maker: Signer = Keypair.generate();
+  let taker: Signer = Keypair.generate();
   let seed = new anchor.BN(1);
   let escrowPDA: PublicKey;
-  let escrowBump: number;
   let vault: PublicKey;
   let mintA = new Keypair();
   let mintB = new Keypair();
@@ -98,7 +97,7 @@ describe("anchor-escrow", () => {
     );
     await provider.connection.confirmTransaction(signature);
 
-    [escrowPDA, escrowBump] = await PublicKey.findProgramAddress(
+    [escrowPDA] = await PublicKey.findProgramAddress(
       [Buffer.from("escrow"), maker.publicKey.toBuffer(), seed.toBuffer('le', 8)],
       program.programId
     );
@@ -188,5 +187,75 @@ describe("anchor-escrow", () => {
 
     const makerBalanceAfter = await getTokenBalance(provider, makerAtaA);
     assert.equal(makerBalanceAfter, makerBalanceBefore + 1000000000);
+  });
+
+  it("Making another escrow with the same maker", async () => {
+    seed = new anchor.BN(2);
+    const signature = await provider.connection.requestAirdrop(
+      maker.publicKey,
+      5 * LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(signature);
+
+    [escrowPDA] = await PublicKey.findProgramAddress(
+      [Buffer.from("escrow"), maker.publicKey.toBuffer(), seed.toBuffer('le', 8)],
+      program.programId
+    );
+
+    mintA = new Keypair();
+    mintB = new Keypair();
+
+    await createMint(provider, mintA);
+    await createMint(provider, mintB);
+    makerAtaA = await createAssociatedToken(provider, mintA.publicKey, maker.publicKey);
+    vault = await getAssociatedTokenAddress(mintA.publicKey, escrowPDA, true);
+
+    const mintToIx = createMintToInstruction(
+      mintA.publicKey,
+      makerAtaA,
+      maker.publicKey,
+      1_000_000_000
+    );
+
+    const mintTx = new anchor.web3.Transaction().add(mintToIx);
+    await provider.sendAndConfirm(mintTx, [maker]);
+
+    const deposit = new anchor.BN(1_000_000_000);
+    const receive = new anchor.BN(1_000_000_000);
+
+    try {
+      let accountParams = {
+        maker: maker.publicKey,
+        mintA: mintA.publicKey,
+        mintB: mintB.publicKey,
+        makerAtaA: makerAtaA,
+        escrow: escrowPDA,
+        vault: vault,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId
+      } as any;
+
+      const tx = await program.methods
+        .make(seed, deposit, receive)
+        .accounts(accountParams)
+        .signers([maker])
+        .rpc();
+
+      console.log("Second Escrow Make successful, transaction signature:", tx);
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+
+    const escrowAccount = await program.account.escrow.fetch(escrowPDA);
+    assert.equal(escrowAccount.seed.toString(), seed.toString());
+    assert.equal(escrowAccount.maker.toString(), maker.publicKey.toString());
+    assert.equal(escrowAccount.mintA.toString(), mintA.publicKey.toString());
+    assert.equal(escrowAccount.mintB.toString(), mintB.publicKey.toString());
+    assert.equal(escrowAccount.recieve.toString(), receive.toString());
+
+    const vaultBalance = await getTokenBalance(provider, vault);
+    assert.equal(vaultBalance, deposit.toNumber());
   });
 });
