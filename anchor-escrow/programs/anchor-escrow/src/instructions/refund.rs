@@ -19,17 +19,17 @@ use crate::Escrow;
 pub struct Refund<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
-    pub mint_a: InterfaceAccount<'info, Mint>,
+    pub mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint,
         associated_token::authority = maker,
     )]
-    pub maker_ata_a: InterfaceAccount<'info, TokenAccount>,
+    pub maker_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
         mut,
         close = maker,
-        has_one = mint_a,
+        has_one = mint,
         has_one = maker,
         seeds = [b"escrow", maker.key().as_ref(), escrow.seed.to_le_bytes().as_ref()],
         bump = escrow.bump
@@ -37,7 +37,7 @@ pub struct Refund<'info> {
     pub escrow: Account<'info, Escrow>,
     #[account(
         mut,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint,
         associated_token::authority = escrow,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
@@ -57,8 +57,8 @@ impl<'info> Refund<'info> {
 
         let transfer_accounts = TransferChecked {
             from: self.vault.to_account_info(),
-            mint: self.mint_a.to_account_info(),
-            to: self.maker_ata_a.to_account_info(),
+            mint: self.mint.to_account_info(),
+            to: self.maker_ata.to_account_info(),
             authority: self.escrow.to_account_info()
         };
 
@@ -68,7 +68,7 @@ impl<'info> Refund<'info> {
             &signer_seeds
         );
 
-        transfer_checked(transfer_cpi_ctx, self.vault.amount, self.mint_a.decimals)?;
+        transfer_checked(transfer_cpi_ctx, self.vault.amount, self.mint.decimals)?;
 
         let close_accounts = CloseAccount {
             account: self.vault.to_account_info(),

@@ -18,14 +18,13 @@ use crate::Escrow;
 pub struct Make<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
-    pub mint_a: InterfaceAccount<'info, Mint>,
-    pub mint_b: InterfaceAccount<'info, Mint>,
+    pub mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint,
         associated_token::authority = maker,
     )]
-    pub maker_ata_a: InterfaceAccount<'info, TokenAccount>,
+    pub maker_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
         init,
         payer = maker,
@@ -37,7 +36,7 @@ pub struct Make<'info> {
     #[account(
         init,
         payer = maker,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint,
         associated_token::authority = escrow,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
@@ -51,8 +50,7 @@ impl<'info> Make<'info> {
         self.escrow.set_inner(Escrow {
             seed,
             maker: self.maker.key(),
-            mint_a: self.mint_a.key(),
-            mint_b: self.mint_b.key(),
+            mint: self.mint.key(),
             recieve,
             bump: bumps.escrow
         });
@@ -62,15 +60,15 @@ impl<'info> Make<'info> {
 
     pub fn deposit(&mut self, deposit: u64) -> Result<()> {
         let transfer_accounts = TransferChecked {
-            from: self.maker_ata_a.to_account_info(),
-            mint: self.mint_a.to_account_info(),
+            from: self.maker_ata.to_account_info(),
+            mint: self.mint.to_account_info(),
             to: self.vault.to_account_info(),
             authority: self.maker.to_account_info()
         };
 
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), transfer_accounts);
 
-        transfer_checked(cpi_ctx, deposit, self.mint_a.decimals)?;
+        transfer_checked(cpi_ctx, deposit, self.mint.decimals)?;
 
         Ok(())
     }

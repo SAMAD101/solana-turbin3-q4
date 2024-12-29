@@ -29,7 +29,6 @@ pub mod anchor_escrow {
     }
 
     pub fn take(ctx: Context<Take>, seed: u64) -> Result<()> {
-        ctx.accounts.deposit(seed)?;
         ctx.accounts.withdraw_and_close_vault(seed)?;
 
         Ok(())
