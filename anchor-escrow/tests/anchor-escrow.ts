@@ -257,7 +257,7 @@ describe("anchor-escrow", () => {
 
     try {
       const tx = await program.methods
-        .take(seed)
+        .take()
         .accounts(accountParams)
         .signers([taker])
         .rpc();
