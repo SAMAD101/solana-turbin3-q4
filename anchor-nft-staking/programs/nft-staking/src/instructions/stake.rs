@@ -28,7 +28,6 @@ pub struct Stake<'info> {
         bump,
     )]
     pub metadata: Account<'info, MetadataAccount>,
-
     #[account(
         seeds = [
             b"metadata",
@@ -47,7 +46,6 @@ pub struct Stake<'info> {
         bump = user_account.bump,
     )]
     pub user_account: Account<'info, UserAccount>,
-
     #[account(
         init,
         payer = user,
@@ -63,7 +61,6 @@ pub struct Stake<'info> {
 
 impl<'info> Stake<'info> {
     pub fn stake(&mut self, bumps: &StakeBumps) -> Result<()> {
-
         require!(self.user_account.amount_staked < self.config.max_stake, ErrorCode::MaxStake);
 
         let cpi_program = self.token_program.to_account_info();
@@ -106,6 +103,5 @@ impl<'info> Stake<'info> {
         self.user_account.amount_staked += 1;
 
         Ok(())
-
     }
 }
