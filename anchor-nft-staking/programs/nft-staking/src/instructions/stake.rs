@@ -1,9 +1,32 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{metadata::{mpl_token_metadata::instructions::{FreezeDelegatedAccountCpi, FreezeDelegatedAccountCpiAccounts}, MasterEditionAccount, Metadata, MetadataAccount}, token::{approve, Approve, Mint, Token, TokenAccount}};
 
-use crate::{state::{StakeAccount, StakeConfig, UserAccount}, error::ErrorCode};
+use anchor_spl::{
+    metadata::{
+        mpl_token_metadata::instructions::{
+            FreezeDelegatedAccountCpi,
+            FreezeDelegatedAccountCpiAccounts
+        },
+        MasterEditionAccount,
+        Metadata,
+        MetadataAccount
+    },
+    token::{
+        approve,
+        Approve,
+        Mint,
+        Token,
+        TokenAccount
+    }
+};
 
-
+use crate::{
+    state::{
+        StakeAccount,
+        StakeConfig,
+        UserAccount
+    },
+    error::ErrorCode
+};
 #[derive(Accounts)]
 pub struct Stake<'info> {
     #[account(mut)]
