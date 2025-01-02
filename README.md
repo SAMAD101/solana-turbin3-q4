@@ -121,5 +121,11 @@ to building and expanding the project after the program ended.
     - **Fields:** seed (u64), maker (Pubkey), mint (Pubkey), bump (u8)
 </details>
 
+<details>
+  <summary><b>anchor-nft-staking</b></summary>
+
+  NFT staking Solana program using Anchor for staking NFTs and earning rewards.
+</details>
+
 
 ### more updates coming soon...
