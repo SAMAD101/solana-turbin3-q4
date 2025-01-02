@@ -10,22 +10,12 @@ use anchor_spl::{
         Metadata,
         MetadataAccount
     },
-    token::{
-        approve,
-        Approve,
-        Mint,
-        Token,
-        TokenAccount
-    }
+    token::{approve, Approve, Mint, Token, TokenAccount}
 };
 
 use crate::{
-    state::{
-        StakeAccount,
-        StakeConfig,
-        UserAccount
-    },
-    error::ErrorCode
+    state::{StakeAccount, StakeConfig, UserAccount},
+    error::StakeError
 };
 
 #[derive(Accounts)]

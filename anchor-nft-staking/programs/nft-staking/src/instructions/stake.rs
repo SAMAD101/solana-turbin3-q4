@@ -10,23 +10,14 @@ use anchor_spl::{
         Metadata,
         MetadataAccount
     },
-    token::{
-        approve,
-        Approve,
-        Mint,
-        Token,
-        TokenAccount
-    }
+    token::{approve, Approve, Mint, Token, TokenAccount}
 };
 
 use crate::{
-    state::{
-        StakeAccount,
-        StakeConfig,
-        UserAccount
-    },
-    error::ErrorCode
+    state::{StakeAccount, StakeConfig, UserAccount},
+    error::StakeError
 };
+
 #[derive(Accounts)]
 pub struct Stake<'info> {
     #[account(mut)]
@@ -72,7 +63,7 @@ pub struct Stake<'info> {
     #[account(
         init,
         payer = user,
-        space = StakeAccount::INIT_SPACE,
+        space = 8 + StakeAccount::INIT_SPACE,
         seeds = [b"stake".as_ref(), mint.key().as_ref(), config.key().as_ref()],
         bump,
     )]
@@ -84,7 +75,17 @@ pub struct Stake<'info> {
 
 impl<'info> Stake<'info> {
     pub fn stake(&mut self, bumps: &StakeBumps) -> Result<()> {
-        require!(self.user_account.amount_staked < self.config.max_stake, ErrorCode::MaxStake);
+        require!(
+            self.user_account.amount_staked < self.config.max_stake,
+            StakeError::MaxStakeReached
+        );
+
+        self.stake_account.set_inner(StakeAccount{
+            owner: self.user.key(),
+            mint: self.mint.key(),
+            last_update: Clock::get()?.unix_timestamp,
+            bump: bumps.stake_account,
+        });
 
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Approve {
@@ -92,12 +93,18 @@ impl<'info> Stake<'info> {
             delegate: self.stake_account.to_account_info(),
             authority: self.user.to_account_info(),
         };
-
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
         approve(cpi_ctx, 1)?;
 
-
+        let binding = [self.stake_account.bump];
+        let seeds = &[
+            b"stake",
+            self.mint.to_account_info().key.as_ref(),
+            self.config.to_account_info().key.as_ref(),
+            &binding,
+        ];
+        let signers_seeds = &[&seeds[..]];
         let delegate  = &self.stake_account.to_account_info();
         let token_account = &self.mint_ata.to_account_info();
         let edition = &self.edition.to_account_info();
@@ -114,14 +121,7 @@ impl<'info> Stake<'info> {
                 mint,
                 token_program,
             },
-        ).invoke()?;
-
-        self.stake_account.set_inner(StakeAccount{
-            owner: self.user.key(),
-            mint: self.mint.key(),
-            last_update: Clock::get()?.unix_timestamp,
-            bump: bumps.stake_account,
-        });
+        ).invoke_signed(signers_seeds)?;
         
         self.user_account.amount_staked += 1;
 

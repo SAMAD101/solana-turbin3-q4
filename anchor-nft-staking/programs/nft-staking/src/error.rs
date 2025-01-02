@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum ErrorCode {
+pub enum StakeError {
     #[msg("maximum stake reached")]
-    MaxStake,
+    MaxStakeReached,
 }

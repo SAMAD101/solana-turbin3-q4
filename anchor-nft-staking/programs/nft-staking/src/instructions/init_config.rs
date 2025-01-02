@@ -13,7 +13,7 @@ pub struct InitializeConfig<'info> {
         payer = admin,
         seeds = [b"config".as_ref()],
         bump,
-        space = StakeConfig::INIT_SPACE,
+        space = 8 + StakeConfig::INIT_SPACE,
     )]
     pub config: Account<'info, StakeConfig>,
     #[account(
