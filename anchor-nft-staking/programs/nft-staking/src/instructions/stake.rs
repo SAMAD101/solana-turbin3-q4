@@ -27,19 +27,19 @@ pub struct Stake<'info> {
     #[account(
         mut,
         associated_token::mint = mint,
-        associated_token::authority = user,
+        associated_token::authority = user
     )]
     pub mint_ata: Account<'info, TokenAccount>,
     #[account(
         seeds = [
             b"metadata",
             metadata_program.key().as_ref(),
-            mint.key().as_ref(),
+            mint.key().as_ref()
         ],
         seeds::program = metadata_program.key(),
         constraint = metadata.collection.as_ref().unwrap().key.as_ref() == collection.key().as_ref(),
         constraint = metadata.collection.as_ref().unwrap().verified == true,
-        bump,
+        bump
     )]
     pub metadata: Account<'info, MetadataAccount>,
     #[account(
@@ -50,14 +50,18 @@ pub struct Stake<'info> {
             b"edition"
         ],
         seeds::program = metadata_program.key(),
-        bump,
+        bump
     )]
     pub edition: Account<'info, MasterEditionAccount>,
+    #[account(
+        seeds = [b"config".as_ref()],
+        bump = config.bump
+    )]
     pub config: Account<'info, StakeConfig>,
     #[account(
         mut,
         seeds = [b"user".as_ref(), user.key().as_ref()],
-        bump = user_account.bump,
+        bump = user_account.bump
     )]
     pub user_account: Account<'info, UserAccount>,
     #[account(
@@ -65,7 +69,7 @@ pub struct Stake<'info> {
         payer = user,
         space = 8 + StakeAccount::INIT_SPACE,
         seeds = [b"stake".as_ref(), mint.key().as_ref(), config.key().as_ref()],
-        bump,
+        bump
     )]
     pub stake_account: Account<'info, StakeAccount>,
     pub system_program: Program<'info, System>,

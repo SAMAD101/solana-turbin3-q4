@@ -13,15 +13,21 @@ pub mod anchor_vault {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        ctx.accounts.initialize(&ctx.bumps)
+        ctx.accounts.initialize(&ctx.bumps)?;
+
+        Ok(())
     }
 
     pub fn deposit(ctx: Context<Payment>, amount: u64) -> Result<()> {
-        ctx.accounts.deposit(amount)
+        ctx.accounts.deposit(amount)?;
+
+        Ok(())
     }
 
     pub fn withdraw(ctx: Context<Payment>, amount: u64) -> Result<()> {
-        ctx.accounts.withdraw(amount)
+        ctx.accounts.withdraw(amount)?;
+
+        Ok(())
     }
 }
 
@@ -118,5 +124,5 @@ impl<'info> Payment<'info> {
 #[derive(InitSpace)]
 pub struct VaultState {
     pub vault_bump: u8,
-    pub state_bump: u8,
+    pub state_bump: u8
 }
