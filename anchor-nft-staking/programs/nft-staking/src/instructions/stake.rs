@@ -124,7 +124,7 @@ impl<'info> Stake<'info> {
                 edition,
                 mint,
                 token_program,
-            },
+            }
         ).invoke_signed(signers_seeds)?;
         
         self.user_account.amount_staked += 1;
