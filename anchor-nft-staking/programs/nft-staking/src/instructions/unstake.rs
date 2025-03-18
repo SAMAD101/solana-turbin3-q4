@@ -1,5 +1,3 @@
-use core::time;
-
 use anchor_lang::prelude::*;
 
 use anchor_spl::{
@@ -64,7 +62,7 @@ pub struct Unstake<'info> {
 }
 
 impl<'info> Unstake<'info> {
-    pub fn unstake(&mut self, bumps: &UnstakeBumps) -> Result<()>{
+    pub fn unstake(&mut self) -> Result<()>{
         let time_elapsed = ((Clock::get()?.unix_timestamp - self.stake_account.last_update)/86400) as u32;
         require!(time_elapsed >= self.config.freeze_period, StakeError::FreezePeriodNotPassed);
 

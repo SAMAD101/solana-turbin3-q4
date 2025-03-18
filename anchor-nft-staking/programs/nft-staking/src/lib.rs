@@ -34,7 +34,13 @@ pub mod nft_staking {
     }
 
     pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
-        ctx.accounts.unstake(&ctx.bumps)?;
+        ctx.accounts.unstake()?;
+
+        Ok(())
+    }
+
+    pub fn claim(ctx: Context<Claim>) -> Result<()> {
+        ctx.accounts.claim()?;
 
         Ok(())
     }
